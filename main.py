@@ -235,7 +235,7 @@ async def book(interaction: discord.Interaction, region: str):
                 timestamp   = datetime.now(),
                 color       = 0x7c2c4c,
                 title       = "**Bookings**",
-                description = "An unknown error has occured.\nPlease report this issue to the admins."
+                description = "An Interal Server Errors has occured.\nPlease try again later."
             )
             embed.set_footer(text=f"Status Code: {status}")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
@@ -320,10 +320,10 @@ async def unbook(interaction: discord.Interaction):
             timestamp   = datetime.now(),
             color       = 0x7c2c4c,
             title       = "**Bookings**",
-            description = f"Your unbook request has failed.\nPlease report this issue to the admins."
+            description = f"An Internal Server Error has occured.\nYou are able to book for another server instead."
         )
 
-        embed.set_footer(text="Status Code: {status}")
+        embed.set_footer(text=f"Status Code: {status}")
         await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
 
     if bookingid in booker: # garbage collect

@@ -169,7 +169,7 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
         print(f"Unexpected error: {str(e)}")
         return 0, None
 
-async def StopMatchaBooking(bookingid: int) -> requests.Response:
+async def StopMatchaBooking(bookingid: int) -> int:
     """
     Terminates the booking in Matcha API.
 
