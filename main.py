@@ -26,6 +26,7 @@ MAX_BOOKABLE = int(os.getenv("MAX_BOOKABLE"))
 g_regions = {}
 regions = []
 booker = {}
+BookingAmount = 0
 
 # For choices init
 async def GetBookableChoices(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
@@ -67,16 +68,6 @@ async def status(interaction: discord.Interaction, region: str = None):
     await interaction.response.defer() # might just remove this and have a placeholder
 
     bookings = await api.FetchBookableAvailability(PROVIDER)
-
-    # Calculate the current occupancy
-    total_occupied = 0
-    total_quota = 0
-    
-    for _, region_data in bookings.items():
-        total_occupied += region_data["occupied"]
-        total_quota += region_data["quota"]
-    
-    BookingAmount = total_occupied
 
     # Setup base embed
     embed = Embed(
@@ -150,8 +141,7 @@ async def book(interaction: discord.Interaction, region: str):
     embed.set_footer(text="Regards")
     msg = await interaction.followup.send(content=f"<@{interaction.user.id}>", embed=embed, wait=True)
 
-    # Check if already has a booking
-    global booker
+    global booker, BookingAmount
     if not isinstance(booker, dict):
         booker = {}
 
@@ -190,6 +180,18 @@ async def book(interaction: discord.Interaction, region: str):
         # Has DM enabled
         pass
 
+    # Check if it exceeds the MAX_BOOKABLE
+    if BookingAmount >= MAX_BOOKABLE:
+        embed = Embed(
+            timestamp   = datetime.now(),
+            color       = 0x7c2c4c,
+            title       = "**Bookings**",
+            description = "The total server capacity has been reached.\nPlease try again later."
+        )
+        embed.set_footer(text="Apologies")
+        await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+        return
+
     # Create the request in the background
     status, data = await api.CreateMatchaBooking(str(user.id), region, PROVIDER) # Attempt to book
 
@@ -225,7 +227,7 @@ async def book(interaction: discord.Interaction, region: str):
                 title       = "**Bookings**",
                 description = "Service temporarily unavailable.\nThis could be due to a configuration issue or network problem.\nPlease try again later or contact the admins."
             )
-            embed.set_footer(text="Configuration Error")
+            embed.set_footer(text="Apologies")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
             return
         
@@ -248,6 +250,7 @@ async def book(interaction: discord.Interaction, region: str):
     if not isinstance(booker, dict):
         booker = {}
     booker[bookingid] = booking(user.id, bookingid, region, msg) 
+    BookingAmount += 1
     
 
 
@@ -269,7 +272,7 @@ async def unbook(interaction: discord.Interaction):
     embed.set_footer(text="Regards")
     msg = await interaction.followup.send(content=f"<@{interaction.user.id}>", embed=embed, wait=True)
 
-    global booker
+    global booker, BookingAmount
     if not isinstance(booker, dict):
         booker = {}
 
@@ -328,6 +331,7 @@ async def unbook(interaction: discord.Interaction):
 
     if bookingid in booker: # garbage collect
         del booker[bookingid]
+        BookingAmount -= 1
 
 #
 #   FUNCTION: Manually triggered to deliever the server details
@@ -419,6 +423,8 @@ async def ServerIsEmpty(userid: int, bookingid: int):
 
     if bookingid in booker:
         del booker[bookingid] # garbage collect
+        global BookingAmount
+        BookingAmount -= 1
 
 
 # ------------------------------- STARTER ------------------------------- #
