@@ -246,7 +246,7 @@ async def book(interaction: discord.Interaction, region: str):
 
     if not isinstance(booker, dict):
         booker = {}
-    booker[bookingid] = booking(user.id, bookingid, region, msg) 
+    booker[bookingid] = booking(user.id, bookingid, region, msg)
     BookingAmount += 1
     
 
@@ -300,6 +300,17 @@ async def unbook(interaction: discord.Interaction):
         embed.set_footer(text="Regards")
         await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
         return
+    
+    elif booker[bookingid].getStatus() == "starting": # the server is starting
+        embed = Embed(
+            timestamp   = datetime.now(),
+            color       = 0x7c2c4c,
+            title       = "**Bookings**",
+            description = "You may close the server after it has started.\nPlease wait for it to finish."
+        )
+        embed.set_footer(text="Regards")
+        await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+        return
 
     booker[bookingid].setStatus("unbooking")
 
@@ -320,7 +331,7 @@ async def unbook(interaction: discord.Interaction):
             timestamp   = datetime.now(),
             color       = 0x7c2c4c,
             title       = "**Bookings**",
-            description = f"An Internal Server Error has occured.\nYou are able to book for another server instead."
+            description = f"An Internal Server Error has occured.\nPlease try again later or contact the admins."
         )
 
         embed.set_footer(text=f"Status Code: {status}")
