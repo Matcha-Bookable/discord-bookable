@@ -47,17 +47,16 @@ pip install -r requirements.txt
 ```
 
 3. Change `.env.example` to `.env` and fill in the following variables:
-|      Variable     |              Description              | 
-|-------------------|---------------------------------------|
-| `BOT_TOKEN`       | Bot token                             |
-| `PROVIDER`        | Provider identifier                   |
-| `PROVIDER_NAME`   | Appearance name for bookable          |
-| `WEBHOOK_URL`     | FQDN of the webhook url               |
-| `WEBHOOK_BEARER`  | if you have bearer authenication      |
-| `GUILD`           | Server ID                             |
-| `CHANNEL_ID`      | Channel ID                            |
-| `MAX_BOOKABLE`    | Maximum number of bookable servers    |
-
+```
+BOT_TOKEN=        Bot token                             
+PROVIDER=         Provider identifier                   
+PROVIDER_NAME=    Appearance name for bookable          
+WEBHOOK_URL=      FQDN of the webhook url               
+WEBHOOK_BEARER=   if you have bearer authenication      
+GUILD=            Server ID                             
+CHANNEL_ID=       Channel ID                            
+MAX_BOOKABLE=     Maximum number of bookable servers    
+```
 4. Run the bot:
 ```bash
 python main.py
