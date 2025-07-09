@@ -50,6 +50,10 @@ class WebhookServer(commands.Cog):
             print(f"Error processing webhook: {e}")
             return web.json_response({"error": str(e)}, status=500)
 
+    async def health_handler(self, request):
+        return web.json_response({"status": "healthy"})
+
+
     async def checkout_bookable(self, data):
         """
         Process the incoming webhook data.
@@ -87,12 +91,14 @@ class WebhookServer(commands.Cog):
         """Start the aiohttp web server"""
         app = web.Application()
         app.router.add_post('/webhook', self.webhook_handler)
+        app.router.add_get('/health', self.health_handler)
         
         runner = web.AppRunner(app)
         await runner.setup()
         self.site = web.TCPSite(runner, '0.0.0.0', 5000)
         await self.bot.wait_until_ready()
         print("Starting webhook server...")
+        print("Health endpoint available at: http://0.0.0.0:5000/health")
         await self.site.start()
 
     def cog_unload(self):
