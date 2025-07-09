@@ -27,22 +27,23 @@ g_regions = {}
 regions = []
 booker = {}
 BookingAmount = 0
+choices = []
+
 
 # For choices init
-async def GetBookableChoices(interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
-    choices = []
+async def GetBookableChoices():
+    global choices
     for region in regions:
-        if current.lower() in region["name"].lower() or current.lower() in region["code"].lower():
-            choices.append(app_commands.Choice(name=region["name"], value=region["code"]))
+        choices.append(app_commands.Choice(name=region["name"], value=region["code"]))
 
-            # save into g_regions variable
-            g_regions[region["code"]] = {
-                "fullname": region["name"]
-            }
+        # save into g_regions variable
+        g_regions[region["code"]] = {
+            "fullname": region["name"]
+        }
 
         if len(choices) >= 25:  # Discord limit
             break
-    return choices
+    return
 
 # --------------------------------------------------- DISCORD EVENTS / COMMANDS --------------------------------------------------- #
 
@@ -53,17 +54,13 @@ async def GetBookableChoices(interaction: discord.Interaction, current: str) -> 
 async def on_ready():
     print(f'Logged on as {client.user}!')
 
-    # Fetch available regions for choices
-    global regions
-    regions = await api.FetchBookableRegions(PROVIDER)
-
     await client.tree.sync(guild=GUILD) # Sync commands
 
 #
 #   SLASHCOMMAND: /status <region:OPT>
 #
 @client.tree.command(name="status", description="List all of the bookable locations.", guild=GUILD)
-@app_commands.autocomplete(region=GetBookableChoices)
+@app_commands.choices(region=choices)
 async def status(interaction: discord.Interaction, region: str = None):
     await interaction.response.defer() # might just remove this and have a placeholder
 
@@ -124,7 +121,7 @@ async def status(interaction: discord.Interaction, region: str = None):
 #   SLASHCOMMAND: /book <region>
 #
 @client.tree.command(name="book", description="Book a server in a location", guild=GUILD)
-@app_commands.autocomplete(region=GetBookableChoices)
+@app_commands.choices(region=choices)
 async def book(interaction: discord.Interaction, region: str):
     await interaction.response.defer()
 
@@ -443,7 +440,12 @@ async def setup_webhook():
 async def run_bot():
     """Run the Discord bot"""
     print("Starting Discord bot...")
-    
+
+    # Fetch available regions for choices
+    global regions
+    regions = await api.FetchBookableRegions(PROVIDER)
+    await GetBookableChoices()
+
     # Setup webhook cog before starting the bot
     async with client:
         await setup_webhook()
