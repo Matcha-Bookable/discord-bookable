@@ -69,7 +69,7 @@ Alternatively, use Docker:
 
 ```bash
 docker build -t discord-bookable .
-docker run -d --env-file .env discord-bookable
+docker run -d -p 5000:5000/tcp --env-file .env discord-bookable
 ```
 
 ### Note
