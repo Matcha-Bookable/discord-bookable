@@ -54,7 +54,8 @@ BOT_TOKEN=          Bot token
 MATCHA_API_TOKEN=   Matcha API's apikey
 MATCHA_API_URL=     FQDN of the Matcha API URL          
 PROVIDER=           Provider identifier                   
-PROVIDER_NAME=      Appearance name for bookable          
+PROVIDER_NAME=      Appearance name for bookable 
+WEBHOOK_PORT=       Desired port for webhook         
 WEBHOOK_URL=        FQDN of the webhook url to receive details               
 WEBHOOK_BEARER=     if you wish to have bearer authenication      
 GUILD=              Server ID                             
@@ -76,7 +77,7 @@ docker run -d -p 5000:5000/tcp --env-file .env discord-bookable
 ```
 
 ### Note
-> By default, the webhook port is hard-coded into `port 5000`. Feel free to change it but make sure the reverse proxy is pointed to the current port. 
+> please remember to change the `WEBHOOK_PORT` if you have multiple docker instances running in the same environment
 
 
 ## License

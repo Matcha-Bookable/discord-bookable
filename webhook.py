@@ -3,6 +3,12 @@ import json
 import asyncio
 from discord.ext import commands
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT"))
 
 #
 #   CREDITS: https://gist.github.com/crrapi/c8465f9ce8b579a8ca3e78845309b832?permalink_comment_id=3431065#gistcomment-3431065
@@ -95,10 +101,10 @@ class WebhookServer(commands.Cog):
         
         runner = web.AppRunner(app)
         await runner.setup()
-        self.site = web.TCPSite(runner, '0.0.0.0', 5000)
+        self.site = web.TCPSite(runner, '0.0.0.0', WEBHOOK_PORT)
         await self.bot.wait_until_ready()
         print("Starting webhook server...")
-        print("Health endpoint available at: http://0.0.0.0:5000/health")
+        print(f"Health endpoint available at: http://localhost:{WEBHOOK_PORT}/health")
         await self.site.start()
 
     def cog_unload(self):
