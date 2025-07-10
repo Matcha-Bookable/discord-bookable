@@ -138,9 +138,24 @@ async def book(interaction: discord.Interaction, region: str):
     embed.set_footer(text="Regards")
     msg = await interaction.followup.send(content=f"<@{interaction.user.id}>", embed=embed, wait=True)
 
+    tempID = user.id # using discord snowflake as temp, unique and literally impossible to reach
+
     global booker, BookingAmount
     if not isinstance(booker, dict):
         booker = {}
+
+    if booker[tempID]: # If the tempID exists: the request is still being processed
+        embed = Embed(
+            timestamp   = datetime.now(),
+            color       = 0x7c2c4c,
+            title       = "**Bookings**",
+            description = "You have a request being processed.\nPlease wait till it has finished."
+        )
+        embed.set_footer(text="Regards")
+        await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+        return
+
+    booker[tempID] = booking(None, None, None, None)  # Temporary booking object
 
     bookingid = None
     for b_id, b_obj in booker.items():
@@ -153,6 +168,7 @@ async def book(interaction: discord.Interaction, region: str):
             )
             embed.set_footer(text="Regards")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+            del booker[tempID]
             return
     try:
         # Send an invalid message to test if the user has DM disabled
@@ -170,7 +186,7 @@ async def book(interaction: discord.Interaction, region: str):
         
         embed.set_footer(text="Apologies")
         await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
-
+        del booker[tempID]
         return
     
     except discord.HTTPException:
@@ -187,10 +203,13 @@ async def book(interaction: discord.Interaction, region: str):
         )
         embed.set_footer(text="Apologies")
         await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+        del booker[tempID]
         return
 
     # Create the request in the background
     status, data = await api.CreateMatchaBooking(str(user.id), region, PROVIDER) # Attempt to book
+
+    del booker[tempID]
 
     match status:
         case 200:
@@ -203,6 +222,18 @@ async def book(interaction: discord.Interaction, region: str):
             )
             embed.set_footer(text="Have fun")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+
+        case 301:
+            # Duplicated (Tried booking from 2 different bots with the same Backend)
+            embed = Embed(
+                timestamp   = datetime.now(),
+                color       = 0x7c2c4c,
+                title       = "**Bookings**",
+                description = "You have a separate booking currently.\nPlease unbook from the other bookable before attempting."
+            )
+            embed.set_footer(text="Regards")
+            await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+            return
         
         case 302:
             # The region is full
@@ -248,8 +279,38 @@ async def book(interaction: discord.Interaction, region: str):
         booker = {}
     booker[bookingid] = booking(user.id, bookingid, region, msg)
     BookingAmount += 1
-    
 
+    #
+    #   DISCORD INTERACTION WEBHOOK TOKEN IS ONLY VALID FOR 15 MINUTES!!!!!
+    #
+
+    # timeout for webhook
+    timeout = False
+    start_time = datetime.now()
+    while True:
+        if booker[bookingid].getStatus() == "started": # webhook went through
+            break
+        elif booker[bookingid].getStatus() == "starting" and timeout:
+            embed = Embed(
+                timestamp   = datetime.now(),
+                color       = 0x7c2c4c,
+                title       = "**Bookings**",
+                description = "The request has timed out.\nPlease try again later."
+            )
+            embed.set_footer(text=f"Apologies")
+            await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+            BookingAmount -= 1
+            del booker[bookingid]
+            break
+
+        elif timeout: # future proof heh
+            break
+
+        # Wait 10 seconds before checking
+        await asyncio.sleep(10)
+        
+        if (datetime.now() - start_time).total_seconds() > 600: # 10 minutes is more than sufficient
+            timeout = True
 
 #
 #   SLASHCOMMAND: /unbook
