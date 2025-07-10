@@ -5,6 +5,8 @@ from typing import Tuple, Optional
 
 load_dotenv()
 
+MATCHA_API_URL = os.getenv("MATCHA_API_URL")
+
 async def FetchBookableRegions(provider: str):
     """
     Fetches bookable regions from the specified provider.
@@ -16,7 +18,7 @@ async def FetchBookableRegions(provider: str):
         list: A list of regions that have the specified provider available
     """
     try:
-        response = requests.get("https://api.matcha-bookable.com/v1/resources/region/list")
+        response = requests.get(f"{MATCHA_API_URL}/v1/resources/region/list")
         response.raise_for_status()
         
         # Parse the JSON response
@@ -74,7 +76,7 @@ async def FetchBookableAvailability(provider: str, region: str = None):
         }
     """
     try:
-        response = requests.get("https://api.matcha-bookable.com/v1/resources/region/list")
+        response = requests.get(f"{MATCHA_API_URL}/v1/resources/region/list")
         response.raise_for_status()
         
         # Parse the JSON response
@@ -153,7 +155,7 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
         
         # post
         response = requests.post(
-            "https://api.matcha-bookable.com/v1/matcha/createbooking",
+            f"{MATCHA_API_URL}/v1/matcha/createbooking",
             json=payload,
             headers=headers
         )
@@ -196,7 +198,7 @@ async def StopMatchaBooking(bookingid: int) -> int:
         }
 
         response = requests.post(
-            f"https://api.matcha-bookable.com/v1/matcha/endbooking?id={bookingid}",
+            f"{MATCHA_API_URL}/v1/matcha/endbooking?id={bookingid}",
             headers=headers
         )
 

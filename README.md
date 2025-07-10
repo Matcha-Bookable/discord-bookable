@@ -32,7 +32,7 @@ Unbooks the users' server.
 
 ### Prerequisites
 - Python 3.12
-- Matcha API token
+- Matcha API Access
 - Docker
 
 ### Manual Setup
@@ -50,14 +50,16 @@ pip install -r requirements.txt
 
 3. Change `.env.example` to `.env` and fill in the following variables:
 ```
-BOT_TOKEN=        Bot token                             
-PROVIDER=         Provider identifier                   
-PROVIDER_NAME=    Appearance name for bookable          
-WEBHOOK_URL=      FQDN of the webhook url               
-WEBHOOK_BEARER=   if you have bearer authenication      
-GUILD=            Server ID                             
-CHANNEL_ID=       Channel ID                            
-MAX_BOOKABLE=     Maximum number of bookable servers    
+BOT_TOKEN=          Bot token              
+MATCHA_API_TOKEN=   Matcha API's apikey
+MATCHA_API_URL=     FQDN of the Matcha API URL          
+PROVIDER=           Provider identifier                   
+PROVIDER_NAME=      Appearance name for bookable          
+WEBHOOK_URL=        FQDN of the webhook url to receive details               
+WEBHOOK_BEARER=     if you wish to have bearer authenication      
+GUILD=              Server ID                             
+CHANNEL_ID=         Channel ID                            
+MAX_BOOKABLE=       Maximum number of bookable servers    
 ```
 4. Run the bot:
 ```bash

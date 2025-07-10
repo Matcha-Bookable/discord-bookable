@@ -144,7 +144,7 @@ async def book(interaction: discord.Interaction, region: str):
     if not isinstance(booker, dict):
         booker = {}
 
-    if booker[tempID]: # If the tempID exists: the request is still being processed
+    if tempID in booker: # If the tempID exists: the request is still being processed
         embed = Embed(
             timestamp   = datetime.now(),
             color       = 0x7c2c4c,
