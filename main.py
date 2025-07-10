@@ -454,7 +454,7 @@ async def sendServerDetails(userid: int, msg: WebhookMessage, details: dict):
     
     embed_dm.add_field(
             name="Reminder",
-            value=f"`{reminder}`",
+            value=f"{reminder}",
             inline=False
         )
     
