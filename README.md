@@ -1,6 +1,6 @@
 # Discord Bookable Bot
-- GCP Bookable - ![GCP Bookable](https://status.matcha-bookable.com/api/badge/12/status)
-- AWS Bookable - ![AWS Bookable](https://status.matcha-bookable.com/api/badge/4/status)
+- GCP Bookable - ![GCP Bookable](https://status.matcha-bookable.com/api/badge/12/status?cache-control=no-cache)
+- AWS Bookable - ![AWS Bookable](https://status.matcha-bookable.com/api/badge/4/status?cache-control=no-cache)
 
 A Simple Discord bot with webhook that integrates with the [Matcha-Bookable/matcha-api](https://github.com/Matcha-Bookable/matcha-api).
 
