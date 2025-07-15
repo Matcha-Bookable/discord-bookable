@@ -411,7 +411,7 @@ async def sendServerDetails(userid: int, msg: WebhookMessage, details: dict):
     stvString = f"connect {details["address"]}:{details["stv_port"]}"
     instanceName = details["instance"]
     region = f"{g_regions[details["region"]]["fullname"]} ({details["region"].upper()})"
-    reminder = "WARNING: THIS BOOKABLE IS CURRENTLY BEING EXPERIMENTED, WE ARE NOT RESPONSIBLE FOR ANY INCIDENTS OCCURED FROM GAMES IN THIS BOOKABLE.\n\nUse `!votemenu` to change configs and maps.\nUse `!sdr` to receive SDR connect string in-game.\nServer will close if there are less than 2 players for 10 minutes."
+    reminder = "Use `!votemenu` to change configs and maps.\nUse `!sdr` to receive SDR connect string in-game.\nServer will close if there are less than 2 players for 10 minutes."
 
     # Send DM embed to user
     embed_dm = Embed(
@@ -441,8 +441,14 @@ async def sendServerDetails(userid: int, msg: WebhookMessage, details: dict):
         )
     
     embed_dm.add_field(
-            name="Server",
-            value=f"`{instanceName}`",
+            name="Server (ID)",
+            value=f"`{instanceName} ({details["bookingid"]})`",
+            inline=True
+        )
+    
+    embed_dm.add_field(
+            name="Provider",
+            value=f"`{PROVIDER_NAME}`",
             inline=True
         )
     

@@ -79,7 +79,8 @@ class WebhookServer(commands.Cog):
                 "sdr_port": serverDetails.get("sdr_port"),
                 "sv_password": serverDetails.get("sv_password"),
                 "instance": data.get("instance"),
-                "region": self.booker[bookingid].getRegion()
+                "region": self.booker[bookingid].getRegion(),
+                "bookingid": bookingid
             }
 
             await self.sendServerDetails(
