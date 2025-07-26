@@ -295,10 +295,14 @@ async def book(interaction: discord.Interaction, region: str):
                 timestamp   = datetime.now(),
                 color       = 0x7c2c4c,
                 title       = "**Bookings**",
-                description = "The request has timed out.\nPlease try again later."
+                description = "The request has timed out.\nPlease try booking again later."
             )
             embed.set_footer(text=f"Apologies")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+
+            # Since the webhook never came through, we will need to send the unbook request
+            await api.StopMatchaBooking(bookingid)
+
             BookingAmount -= 1
             del booker[bookingid]
             break
