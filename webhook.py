@@ -5,8 +5,11 @@ from discord.ext import commands
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+from logging_config import setup_logger
+from logging import Logger
 
 load_dotenv()
+logger: Logger = setup_logger()
 
 WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT"))
 
@@ -35,26 +38,20 @@ class WebhookServer(commands.Cog):
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            print(f"\n[{timestamp}] Webhook POST Request Received:")
-            print("=" * 50)
-            print("Headers:")
-            for header, value in request.headers.items():
-                print(f"  {header}: {value}")
+            logger.info("Webhook POST received at %s", timestamp)
+            logger.debug("Webhook headers: %s", dict(request.headers))
             
             # Webhook will receives JSON
             data = await request.json()
-            print("\nJSON Data:")
-            print(json.dumps(data, indent=2))
-        
-            print("=" * 50)
+            logger.debug("Webhook JSON: %s", json.dumps(data, indent=2))
 
             await self.checkout_bookable(data)
             
             return web.json_response({"message": "Webhook received"})
             
-        except Exception as e:
-            print(f"Error processing webhook: {e}")
-            return web.json_response({"error": str(e)}, status=500)
+        except Exception:
+            logger.exception("Error processing webhook request")
+            return web.json_response({"error": "Internal server error"}, status=500)
 
     async def health_handler(self, request):
         return web.json_response({"status": "healthy"})
@@ -89,6 +86,8 @@ class WebhookServer(commands.Cog):
                 details
             )
 
+            logger.info("Booking %s started for user %s", bookingid, self.booker[bookingid].getDiscordID())
+
             self.booker[bookingid].setStatus("started")
 
         else:
@@ -104,8 +103,8 @@ class WebhookServer(commands.Cog):
         await runner.setup()
         self.site = web.TCPSite(runner, '0.0.0.0', WEBHOOK_PORT)
         await self.bot.wait_until_ready()
-        print("Starting webhook server...")
-        print(f"Health endpoint available at: http://localhost:{WEBHOOK_PORT}/health")
+        logger.info("Starting webhook server on port %s", WEBHOOK_PORT)
+        logger.info("Health endpoint available at: http://localhost:%s/health", WEBHOOK_PORT)
         await self.site.start()
 
     def cog_unload(self):

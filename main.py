@@ -10,8 +10,11 @@ import asyncio
 
 import api
 from details import booking
+from logging_config import setup_logger
+from logging import Logger
 
 load_dotenv()
+logger: Logger = setup_logger()
 
 intents = discord.Intents.all()
 client = commands.Bot(command_prefix='/', intents=intents)
@@ -52,7 +55,7 @@ async def GetBookableChoices():
 #
 @client.event
 async def on_ready():
-    print(f'Logged on as {client.user}!')
+    logger.info('Logged on as %s', client.user)
 
     await client.tree.sync(guild=GUILD) # Sync commands
 
@@ -109,6 +112,7 @@ async def status(interaction: discord.Interaction, region: str = None):
         await interaction.followup.send(content=f"<@{interaction.user.id}>", embed=embed)
         
     except Exception as e:
+        logger.exception("Error in /status command")
         error_embed = Embed(
             title="Error",
             description=f"An error has occured: {str(e)}",
@@ -175,7 +179,7 @@ async def book(interaction: discord.Interaction, region: str):
         await user.send()
 
     except discord.Forbidden:
-        print(f"BOOKING FAILED: User {user.name} has DMs disabled.")
+        logger.warning("Booking failed: user '%s' has DMs disabled", user.name)
 
         embed = Embed(
                 timestamp   = datetime.now(),
@@ -284,6 +288,7 @@ async def book(interaction: discord.Interaction, region: str):
     #   DISCORD INTERACTION WEBHOOK TOKEN IS ONLY VALID FOR 15 MINUTES!!!!!
     #
 
+    # dockerhub registry often has issue being pulled from certain regions, will soon move to github registry (needs to be public because private costs $$$$)
     # timeout for webhook
     timeout = False
     start_time = datetime.now()
@@ -297,7 +302,7 @@ async def book(interaction: discord.Interaction, region: str):
                 title       = "**Bookings**",
                 description = "The request has timed out.\nPlease try booking again later."
             )
-            embed.set_footer(text=f"Apologies")
+            embed.set_footer(text=f"Apologies ({region.upper()})")
             await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
 
             # Since the webhook never came through, we will need to send the unbook request
@@ -521,7 +526,7 @@ async def setup_webhook():
 
 async def run_bot():
     """Run the Discord bot"""
-    print("Starting Discord bot...")
+    logger.info("Starting Discord bot...")
 
     # Fetch available regions for choices
     global regions
@@ -537,7 +542,7 @@ def main():
     try:
         asyncio.run(run_bot())
     except KeyboardInterrupt:
-        print("\nShutting down...")
+        logger.info("Shutting down via KeyboardInterrupt")
 
 if __name__ == "__main__":
     main()

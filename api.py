@@ -2,10 +2,13 @@ import requests
 import os
 from dotenv import load_dotenv
 from typing import Tuple, Optional
+from logging import Logger
+from logging_config import setup_logger
 
 load_dotenv()
 
 MATCHA_API_URL = os.getenv("MATCHA_API_URL")
+logger: Logger = setup_logger()
 
 async def FetchBookableRegions(provider: str):
     """
@@ -39,10 +42,10 @@ async def FetchBookableRegions(provider: str):
         return available_regions
         
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching regions: {e}")
+        logger.error("Error fetching regions: %s", e, exc_info=True)
         return []
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logger.exception("Unexpected error while fetching regions")
         return []
 
 async def FetchBookableAvailability(provider: str, region: str = None):
@@ -107,10 +110,10 @@ async def FetchBookableAvailability(provider: str, region: str = None):
         return availability_data
         
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching availability: {e}")
+        logger.error("Error fetching availability: %s", e, exc_info=True)
         return {}
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+    except Exception:
+        logger.exception("Unexpected error while fetching availability")
         return {}
     
 async def CreateMatchaBooking(discordid: str, region: str, provider: str = None) -> Tuple[int, Optional[requests.Response]]:
@@ -146,7 +149,7 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
         
         bearer_token = os.getenv("MATCHA_API_TOKEN")
         if not bearer_token:
-            return 0
+            return 0, None
         
         headers = {
             "Authorization": f"Bearer {bearer_token}",
@@ -160,15 +163,14 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
             headers=headers
         )
 
-        print(f"Manual Booking Response: {response.status_code} - {response.text}")
-        
+        logger.info("Create booking response: status=%s body=%s", response.status_code, response.text)
         return response.status_code, response
         
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {str(e)}")
+        logger.error("Request error creating booking: %s", e, exc_info=True)
         return 0, None
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+    except Exception:
+        logger.exception("Unexpected error creating booking")
         return 0, None
 
 async def StopMatchaBooking(bookingid: int) -> int:
@@ -202,13 +204,12 @@ async def StopMatchaBooking(bookingid: int) -> int:
             headers=headers
         )
 
-        print(f"Manual Unbooking Response: {response.status_code} - {response.text}")
-
+        logger.info("End booking response: status=%s body=%s", response.status_code, response.text)
         return response.status_code
 
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {str(e)}")
+        logger.error("Request error stopping booking: %s", e, exc_info=True)
         return 0
-    except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+    except Exception:
+        logger.exception("Unexpected error stopping booking")
         return 0
