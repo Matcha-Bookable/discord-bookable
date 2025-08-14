@@ -66,6 +66,11 @@ class WebhookServer(commands.Cog):
         """
         bookingid = int(data.get("bookingID"))
 
+        # Check if booking exists in our records
+        if bookingid not in self.booker:
+            logger.warning("Received webhook for unknown/expired booking ID: %s", bookingid)
+            return
+
         if data.get("status") == "started":
             serverDetails = data.get("details", {})
             details = {
@@ -91,7 +96,11 @@ class WebhookServer(commands.Cog):
             self.booker[bookingid].setStatus("started")
 
         else:
-            await self.ServerIsEmpty(self.booker[bookingid].getDiscordID(), bookingid)
+            # Check if booking still exists before processing server empty notification
+            if bookingid in self.booker:
+                await self.ServerIsEmpty(self.booker[bookingid].getDiscordID(), bookingid)
+            else:
+                logger.warning("Received server empty webhook for unknown/expired booking ID: %s", bookingid)
 
     async def webserver(self):
         """Start the aiohttp web server"""
