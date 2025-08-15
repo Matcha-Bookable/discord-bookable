@@ -418,7 +418,8 @@ async def sendServerDetails(userid: int, msg: WebhookMessage, details: dict):
     stvString = f"connect {details["address"]}:{details["stv_port"]}"
     instanceName = details["instance"]
     region = f"{g_regions[details["region"]]["fullname"]} ({details["region"].upper()})"
-    reminder = "Please enter the server first to obtain the host status.\nUse `!host` as the host to control the basic aspect of the server.\n\nUse `!votemenu` to change configs and maps.\nUse `!sdr` to receive SDR connect string in-game.\nServer will close if there are less than 2 players for 10 minutes."
+    # Should probably turn this into an environment variable instead in the future
+    reminder = "Please enter the server first to obtain the host status.\nUse `!host` as the host to control the functionalities of the server (Maps, Config etc).\n\nUse `!votemenu` to change configs and maps.\nUse `!sdr` to receive SDR connect string in-game.\nServer will close if there are less than 2 players for 10 minutes."
 
     # Send DM embed to user
     embed_dm = Embed(
