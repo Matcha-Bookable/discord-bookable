@@ -527,10 +527,26 @@ async def run_bot():
     """Run the Discord bot"""
     logger.info("Starting Discord bot...")
 
-    # Fetch available regions for choices
-    global regions
-    regions = await api.FetchBookableRegions(PROVIDER)
-    await GetBookableChoices()
+    try:
+        # Fetch available regions for choices
+        global regions
+        regions = await api.FetchBookableRegions(PROVIDER)
+        
+        if not regions:
+            logger.error("Unable to fetch data from API.")
+            raise SystemExit("API connection failed")
+        
+        await GetBookableChoices()
+        
+        if not choices:
+            logger.error("Unable to create objects for choices.")
+            raise SystemExit("Discord API failure (choice object)")
+            
+        logger.info("Successfully loaded %d regions", len(regions))
+        
+    except Exception as e:
+        logger.error("Error during bot initialisation: %s", e)
+        raise SystemExit(f"Bot initialisation failed: {e}")
 
     # Setup webhook cog before starting the bot
     async with client:
@@ -540,8 +556,14 @@ async def run_bot():
 def main():
     try:
         asyncio.run(run_bot())
+    except SystemExit as e:
+        logger.error("Bot terminated: %s", e)
+        exit(1)
     except KeyboardInterrupt:
         logger.info("Shutting down via KeyboardInterrupt")
+    except Exception as e:
+        logger.error("Unexpected error: %s", e, exc_info=True)
+        exit(1)
 
 if __name__ == "__main__":
     main()
