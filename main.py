@@ -89,7 +89,7 @@ async def status(interaction: discord.Interaction, region: str = None):
 
                 embed.add_field(
                     name=f"{region_data['name']}",
-                    value=f"`{available}/{total}` available",
+                    value=f"`{available}`/`{total}` `available`",
                     inline=True
                 )
 
@@ -105,7 +105,7 @@ async def status(interaction: discord.Interaction, region: str = None):
                 
                 embed.add_field(
                     name=f"{region_data['name']}",
-                    value=f"`{available}/{total}` available",
+                    value=f"`{available}`/`{total}` `available`",
                     inline=True
                 )
         
@@ -179,8 +179,6 @@ async def book(interaction: discord.Interaction, region: str):
         await user.send()
 
     except discord.Forbidden:
-        logger.warning("Booking failed: user '%s' has DMs disabled", user.name)
-
         embed = Embed(
                 timestamp   = datetime.now(),
                 color       = 0x7c2c4c,
