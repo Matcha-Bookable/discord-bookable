@@ -66,9 +66,9 @@ class WebhookServer(commands.Cog):
         """
         bookingid = int(data.get("bookingID"))
 
-        # Check if booking exists in our records
-        if bookingid not in self.booker:
-            logger.warning("Received webhook for unknown/expired booking ID: %s", bookingid)
+        # Check if booking exists in our records and isn't one that has already been delivered
+        if bookingid not in self.booker or self.booker[bookingid].getStatus() == "started":
+            logger.warning("Received webhook for unknown/duplicated booking ID: %s", bookingid)
             return
 
         if data.get("status") == "started":
