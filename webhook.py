@@ -67,11 +67,11 @@ class WebhookServer(commands.Cog):
         bookingid = int(data.get("bookingID"))
 
         # Check if booking exists in our records and isn't one that has already been delivered
-        if bookingid not in self.booker or self.booker[bookingid].getStatus() == "started":
+        if bookingid not in self.booker:
             logger.warning("Received webhook for unknown/duplicated booking ID: %s", bookingid)
             return
 
-        if data.get("status") == "started":
+        if data.get("status") == "started" or self.booker[bookingid].getStatus() == "starting":
             serverDetails = data.get("details", {})
             details = {
                 "address": serverDetails.get("address"),
@@ -95,6 +95,10 @@ class WebhookServer(commands.Cog):
 
             self.booker[bookingid].setStatus("started")
 
+        # If received duplicated webhook, ignore
+        elif data.get("status") == "started":
+            return
+        
         else:
             # Check if booking still exists before processing server empty notification
             if bookingid in self.booker:
