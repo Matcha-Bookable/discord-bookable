@@ -71,7 +71,8 @@ class WebhookServer(commands.Cog):
             logger.warning("Received webhook for unknown/duplicated booking ID: %s", bookingid)
             return
 
-        if data.get("status") == "started" or self.booker[bookingid].getStatus() == "starting":
+        # requires the received json to be started and status for the booker is starting
+        if data.get("status") == "started" and self.booker[bookingid].getStatus() == "starting":
             serverDetails = data.get("details", {})
             details = {
                 "address": serverDetails.get("address"),
