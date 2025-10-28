@@ -136,7 +136,7 @@ async def book(interaction: discord.Interaction, region: str):
             timestamp   = datetime.now(),
             color       = 0x2c4c7c,
             title       = "**Bookings**",
-            description = "Your request is being processed.\nThis message will be updated accordingly later."
+            description = "Your request is being processed.\nThis message will be updated accordingly later.\nIf this message fails to update, please try again later."
         )
         
     embed.set_footer(text="Regards")
@@ -332,7 +332,7 @@ async def unbook(interaction: discord.Interaction):
         timestamp   = datetime.now(),
         color       = 0x2c4c7c,
         title       = "**Bookings**",
-        description = "Your unbook request is being processed.\nThis message will be updated accordingly later."
+        description = "Your unbook request is being processed.\nThis message will be updated accordingly later.\nIf this message fails to update, please try again later."
     )
     embed.set_footer(text="Regards")
     msg = await interaction.followup.send(content=f"<@{interaction.user.id}>", embed=embed, wait=True)
@@ -399,7 +399,7 @@ async def unbook(interaction: discord.Interaction):
             timestamp   = datetime.now(),
             color       = 0x7c2c4c,
             title       = "**Bookings**",
-            description = f"An Internal Server Error has occured.\nPlease try again later or contact the admins."
+            description = f"An Internal Server Error has occured.\nPlease try again later or contact the admins.\nThis will usually be automatically resolved in a while."
         )
 
         embed.set_footer(text=f"Status Code: {status}")
