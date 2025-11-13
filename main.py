@@ -384,7 +384,7 @@ async def unbook(interaction: discord.Interaction):
 
     status = await api.StopMatchaBooking(bookingid)
 
-    if status == 200:
+    if status == 200 or status == 404: # Sometimes i lose tracking lol
         embed = Embed(
             timestamp   = datetime.now(),
             color       = 0x4c7c2c,
