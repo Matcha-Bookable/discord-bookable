@@ -294,9 +294,9 @@ async def book(interaction: discord.Interaction, region: str):
             break
         elif booker[bookingid].getStatus() == "starting" and timeout:
             # We should perform one last fetch in case there were issues delivering the webhook
-            details = api.manualDetailsCheck(bookingid)
+            details = await api.manualDetailsCheck(bookingid)
             if details:
-                sendServerDetails(user.id, booker[bookingid].getMessageObject(), details)
+                await sendServerDetails(user.id, booker[bookingid].getMessageObject(), details)
                 break
             else:
                 logger.warning("BookingID: %s's webhook and manual check were not successful...", bookingid)
