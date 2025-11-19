@@ -286,7 +286,6 @@ async def book(interaction: discord.Interaction, region: str):
     #   DISCORD INTERACTION WEBHOOK TOKEN IS ONLY VALID FOR 15 MINUTES!!!!!
     #
 
-    # dockerhub registry often has issue being pulled from certain regions, will soon move to github registry (needs to be public because private costs $$$$)
     # timeout for webhook
     timeout = False
     start_time = datetime.now()
@@ -294,21 +293,28 @@ async def book(interaction: discord.Interaction, region: str):
         if booker[bookingid].getStatus() == "started": # webhook went through
             break
         elif booker[bookingid].getStatus() == "starting" and timeout:
-            embed = Embed(
-                timestamp   = datetime.now(),
-                color       = 0x7c2c4c,
-                title       = "**Bookings**",
-                description = "The request has timed out.\nPlease try booking again later."
-            )
-            embed.set_footer(text=f"Apologies ({region.upper()})")
-            await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+            # We should perform one last fetch in case there were issues delivering the webhook
+            details = api.manualDetailsCheck(bookingid)
+            if details:
+                sendServerDetails(user.id, booker[bookingid].getMessageObject(), details)
+                break
+            else:
+                logger.warning("BookingID: %s's webhook and manual check were not successful...", bookingid)
+                embed = Embed(
+                    timestamp   = datetime.now(),
+                    color       = 0x7c2c4c,
+                    title       = "**Bookings**",
+                    description = "The request has timed out.\nPlease try booking again later."
+                )
+                embed.set_footer(text=f"Apologies ({region.upper()})")
+                await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
 
-            # Since the webhook never came through, we will need to send the unbook request
-            await api.StopMatchaBooking(bookingid)
+                # Since the webhook never came through, we will need to send the unbook request
+                await api.StopMatchaBooking(bookingid)
 
-            BookingAmount -= 1
-            del booker[bookingid]
-            break
+                BookingAmount -= 1
+                del booker[bookingid]
+                break
 
         elif timeout: # future proof heh
             break

@@ -1,5 +1,6 @@
 import requests
 import os
+import asyncio
 from dotenv import load_dotenv
 from typing import Tuple, Optional
 from logging import Logger
@@ -213,3 +214,84 @@ async def StopMatchaBooking(bookingid: int) -> int:
     except Exception:
         logger.exception("Unexpected error stopping booking")
         return 0
+    
+async def manualDetailsCheck(bookingid: int) -> Optional[dict]:
+    """
+    Manually checks the booking details from Matcha API.
+    Retries up to 3 times with 20-second intervals if the request fails.
+
+    Args:
+        bookingid (int): The bookingID of the bookable instance.
+
+    Returns:
+        Optional[dict]: Booking details dict or None if failed
+            - If status is "started", details will contain server connection info
+            - If status is "starting" with no details, booking has likely timed out
+            - Returns None on error or if not found after retries
+    """
+    
+    bearer_token = os.getenv("MATCHA_API_TOKEN")
+    if not bearer_token:
+        logger.error("MATCHA_API_TOKEN not configured")
+        return None
+    
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "Content-Type": "application/json"
+    }
+
+    for attempt in range(1, 4):
+        try:
+            response = requests.get(
+                f"{MATCHA_API_URL}/v1/resources/bookings/{bookingid}",
+                headers=headers
+            )
+
+            logger.info("Manual details check attempt %s: status=%s body=%s", attempt, response.status_code, response.text)
+            
+            if response.status_code == 200:
+                info = response.json().get(str(bookingid))
+                
+                if info:
+                    if info.get("status") == "started" and "details" in info:
+                        serverDetails = info.get("details", {})
+                        details = {
+                            "address": serverDetails.get("address"),
+                            "port": serverDetails.get("port"),
+                            "stv_port": serverDetails.get("stv_port"),
+                            "sdr_ipv4": serverDetails.get("sdr_ipv4"),
+                            "sdr_port": serverDetails.get("sdr_port"),
+                            "sv_password": serverDetails.get("sv_password"),
+                            "instance": info.get("instance"),
+                            "region": info.get("provider", {}).get("regionCode"),
+                            "bookingid": bookingid
+                        }
+                        return details
+                    elif info.get("status") == "starting" and "details" not in info:
+                        # Booking is still starting or has timed out
+                        logger.warning("Booking %s is in starting state without details - likely timed out", bookingid)
+                        return None
+                    else:
+                        return info
+                else:
+                    logger.warning("Booking %s not found in response", bookingid)
+            
+            if attempt < 3:
+                await asyncio.sleep(20)
+            else:
+                logger.error("Failed to fetch booking details after 3 attempts")
+                return None
+
+        except requests.exceptions.RequestException as e:
+            logger.error("Request error checking booking details (attempt %s/3): %s", attempt, e, exc_info=True)
+            if attempt < 3:
+                await asyncio.sleep(20)
+            else:
+                return None
+        except Exception:
+            logger.exception("Unexpected error checking booking details (attempt %s/3)", attempt)
+            if attempt < 3:
+                await asyncio.sleep(20)
+            else:
+                return None
+    return None
