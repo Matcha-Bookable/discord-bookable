@@ -41,6 +41,19 @@ class WebhookServer(commands.Cog):
             logger.info("Webhook POST received at %s", timestamp)
             logger.debug("Webhook headers: %s", dict(request.headers))
             
+            # Validate bearer token if configured
+            expected_bearer = os.getenv("WEBHOOK_BEARER")
+            if expected_bearer:
+                auth_header = request.headers.get("Authorization", "")
+                if not auth_header.startswith("Bearer "):
+                    logger.warning("Webhook request missing Authorization header")
+                    return web.json_response({"error": "Unauthorized"}, status=401)
+                
+                provided_token = auth_header[7:]  # Remove "Bearer " prefix
+                if provided_token != expected_bearer:
+                    logger.warning("Webhook request with invalid bearer token")
+                    return web.json_response({"error": "Unauthorized"}, status=401)
+            
             # Webhook will receives JSON
             data = await request.json()
             logger.debug("Webhook JSON: %s", json.dumps(data, indent=2))
@@ -107,9 +120,26 @@ class WebhookServer(commands.Cog):
             else:
                 logger.warning("Received server empty webhook for unknown/expired booking ID: %s", bookingid)
 
+    @web.middleware
+    async def error_middleware(self, request, handler):
+        """Middleware to handle protocol errors and HTTP/2 requests"""
+        try:
+            # Check for HTTP/2 PRI method (HTTP/2 preface)
+            if request.method == "PRI":
+                logger.warning("Rejected HTTP/2 request from %s", request.remote)
+                return web.Response(status=505, text="HTTP/2 not supported")
+            
+            response = await handler(request)
+            return response
+        except web.HTTPException as ex:
+            raise
+        except Exception:
+            logger.exception("Error in middleware processing request")
+            return web.json_response({"error": "Internal server error"}, status=500)
+
     async def webserver(self):
         """Start the aiohttp web server"""
-        app = web.Application()
+        app = web.Application(middlewares=[self.error_middleware])
         app.router.add_post('/webhook', self.webhook_handler)
         app.router.add_get('/health', self.health_handler)
         

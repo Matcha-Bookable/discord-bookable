@@ -150,6 +150,7 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
         
         bearer_token = os.getenv("MATCHA_API_TOKEN")
         if not bearer_token:
+            logger.error("MATCHA_API_TOKEN environment variable not set")
             return 0, None
         
         headers = {
@@ -165,6 +166,12 @@ async def CreateMatchaBooking(discordid: str, region: str, provider: str = None)
         )
 
         logger.info("Create booking response: status=%s body=%s", response.status_code, response.text)
+        
+        if response.status_code in (401, 403):
+            logger.error("API authentication failed - verify MATCHA_API_TOKEN is correct")
+        elif response.status_code >= 500:
+            logger.error("Matcha API server error - status %s", response.status_code)
+            
         return response.status_code, response
         
     except requests.exceptions.RequestException as e:
