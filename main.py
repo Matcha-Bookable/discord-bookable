@@ -400,6 +400,17 @@ async def unbook(interaction: discord.Interaction):
         embed.set_footer(text="Have a nice day")
         await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
 
+    elif status == 409: # Server is being closed by the backend
+        embed = Embed(
+            timestamp   = datetime.now(),
+            color       = 0x7c2c4c,
+            title       = "**Bookings**",
+            description = "Your server is being closed.\nPlease wait till it has finished."
+        )
+        embed.set_footer(text="Regards")
+        await msg.edit(content=f"<@{interaction.user.id}>", embed=embed)
+        return
+
     else:
         embed = Embed(
             timestamp   = datetime.now(),
