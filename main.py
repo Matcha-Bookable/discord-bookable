@@ -510,6 +510,11 @@ async def sendServerDetails(userid: int, msg: WebhookMessage, details: dict):
 #   FUNCTION: Notify the user that the server was empty and unbooked
 #
 async def ServerIsEmpty(userid: int, bookingid: int):
+    if bookingid in booker: # process the data first, prevent duplicated embed
+        del booker[bookingid] # garbage collect
+        global BookingAmount
+        BookingAmount -= 1
+
     channel = await client.fetch_channel(CHANNEL)
 
     embed = Embed(
@@ -520,11 +525,6 @@ async def ServerIsEmpty(userid: int, bookingid: int):
             )
     embed.set_footer(text="Have a nice day")
     await channel.send(content=f"<@{userid}>", embed=embed)
-
-    if bookingid in booker:
-        del booker[bookingid] # garbage collect
-        global BookingAmount
-        BookingAmount -= 1
 
 
 # ------------------------------- STARTER ------------------------------- #
